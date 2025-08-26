@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav>Little nav bar that should stay around</nav>
+    <div id="main-content">
+        <h1>Manga Library</h1>
+        <button id="scanBtn">Initiate Scan</button>
+        <div id="series-list">
+            {{range .Series}}
+                <div class="series-card" onclick="loadSeries(`{{.ID}}`)">
+                    <img src="/thumbnails/{{.Cover}}" alt="Cover" width="150">
+                    <p>{{.Title}}</p>
+                </div>
+            {{end}}
+        </div>
+    </div>
+   
+   <script src="/static/app.js"></script>
+</body>
+</html>

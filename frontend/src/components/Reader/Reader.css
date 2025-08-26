@@ -1,0 +1,11 @@
+.reader {
+    display: flex;
+    justify-content: center;
+    height: 100vh;
+}
+
+.reader link {
+    height: 100%;
+
+}
+

@@ -1,0 +1,52 @@
+.card {
+    width: 150px;
+    padding: 2em;
+}
+
+.card img {
+    width: 150px;
+    height: 225px;
+}
+
+.image-wrapper {
+    width: 150px;
+    height: 225px; 
+    aspect-ratio: 2/3;
+}
+
+.series-list {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr)
+}
+
+.volume-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.volume-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.volume-card h3 {
+    text-align: center;
+}
+
+@media (max-width: 450px) {
+    .series-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .card {
+        width: 170px;
+        padding: 0.2em;
+    }
+
+    .card img {
+        width: 170px;
+        height: 225px; 
+        aspect-ratio: 2/3;
+    }
+}
