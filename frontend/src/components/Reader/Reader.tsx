@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { useKeyboardNavigation, usePreloadPages, usePageNavigation, useSwipe } from "./hooks"
 import ReaderOverlay from "./ReaderOverlay";
 import './Reader.css'
+import type { UserSettings } from "./type";
 
+/*
 type ReaderType = "Horizontal" | "Vertical"
 type DisplayMode = "Single" | "Double" | "Auto";
 type ReadDirection = "LeftToRight" | "RightToLeft" | "Vertical";
@@ -13,6 +15,7 @@ interface UserSettings {
     ReadDirection:      ReadDirection,
     SeparateFirstPage:  boolean,
 }
+*/ 
 
 const u1Settings: UserSettings = {
     ReaderType:         "Horizontal",
@@ -65,7 +68,7 @@ export default function Reader({ id, vId }: ReaderProps) {
     useKeyboardNavigation(prevPage, nextPage);
     usePreloadPages(pages, currentPage, pagesPerView);
     
-    let displayPages: ReadonlyArray<string> = [];
+    let displayPages: readonly string[] = [];
 
     // Handle first page
     if (separateFirstPage && currentPage === 1) {

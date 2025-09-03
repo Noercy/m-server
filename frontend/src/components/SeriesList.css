@@ -14,9 +14,22 @@
     aspect-ratio: 2/3;
 }
 
+/*
 .series-list {
     display: grid;
     grid-template-columns: repeat(6, 1fr)
+}
+*/
+.series-list {
+    
+}
+
+.virtualList {
+   
+}
+
+.virtualListRow {
+    gap: 1rem;
 }
 
 .volume-list {

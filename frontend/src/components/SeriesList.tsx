@@ -23,11 +23,13 @@ export default function SeriesList() {
         .catch(console.error);
     }, []);
 
-    const skeletonCount = 100; 
-	const itemsPerRow = 6;
-	const rowHeight = 300; // adjust to card height
+    const skeletonCount = 300; 
+	const itemsPerRow = 7;
+	const rowHeight = 370; // adjust to card height
 	const rowCount = Math.ceil(series.length / itemsPerRow);
 
+
+  // TODO replace virtual list, not a fan 
   return (
 	<div className="series-list" id="series-list"> 
 		{series.length === 0 ? Array.from({ length: skeletonCount }).map((_, i) => 
@@ -35,19 +37,21 @@ export default function SeriesList() {
 	)) : 
 
     <VirtualList
-      width={1000}
-      height={1000}                 
-      itemCount={rowCount}         
-      itemSize={rowHeight}         
-      overscanCount={3}
-      renderItem={({ index, style }) => {
+		className="virtualList"
+		width='80vw'
+        height='100vh'            
+		 
+		itemCount={rowCount}         
+		itemSize={rowHeight}         
+		overscanCount={3}
+		renderItem={({ index, style }) => {
         // Slice the data for this row
         const start = index * itemsPerRow;
         const end = start + itemsPerRow;
         const rowItems = series.slice(start, end);
 
         return (
-          <div key={index} style={{ ...style, display: "flex", gap: "1rem" }}>
+          <div key={index} class="virtualListRow" style={{ ...style, display: "flex"}}>
             {rowItems.map((s) => (
               <div
                 key={s.ID}
@@ -71,5 +75,9 @@ export default function SeriesList() {
     />}
 	</div>
   );
-  
 }
+
+
+/*
+<div className="series-list" id="series-list"> {series.length === 0 ? Array.from({ length: skeletonCount }).map((_, i) => ( <SeriesCardSkeleton key={i} /> )) : series.map((s) => ( <div className="card" onClick={() => route(/series/${s.ID})} key={s.ID}> <img fetchPriority="high" src={/thumbnails/${s.Cover}} alt="Cover"/> <p>{s.Title}</p> </div> ))} </div>
+ */

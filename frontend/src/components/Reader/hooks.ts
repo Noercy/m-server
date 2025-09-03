@@ -2,54 +2,15 @@ import { useEffect, useState } from "preact/hooks";
 import Hammer from 'hammerjs'
 
 /**
+ * usePageNavigation
  * 
- * @param onPrev 
- * @param onNext 
- */
-export function useKeyboardNavigation(
-    onPrev: () => void, 
-    onNext: () => void
-) {
-    useEffect(() => {
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'ArrowLeft') onPrev();
-            if (e.key === 'ArrowRight') onNext();
-        };
-        window.addEventListener('keydown', handleKey);
-        return () => window.removeEventListener('keydown', handleKey);
-    }, [onPrev, onNext]);
-}
-
-/**
+ * Handles the page state and enables page navigation based of user prefrences
  * 
- * @param pages 
- * @param currentIndex 
- * @param pagesPerView 
- */
-export function usePreloadPages(pages: string[], currentIndex: number, pagesPerView: number) {
-    useEffect(() => {
-        const nextIndex = currentIndex + pagesPerView;
-        const prevIndex = currentIndex - pagesPerView;
-
-        const preload = (i: number) => {
-            if (i>= 0 && i < pages.length) {
-                const img = new Image();
-                img.src = pages[i];
-            }
-        };
-        preload(nextIndex);
-        preload(nextIndex + 1);
-        preload(prevIndex);
-    }, [pages, currentIndex, pagesPerView])
-}
-
-/**
- * 
- * @param pages 
- * @param pagesPerView 
- * @param direction 
- * @param separateFirstPage 
- * @returns void
+ * @param pages -  Array of pages for the currently loaded volume/chapter
+ * @param pagesPerView - Number of pages to be shown to the user, 1 or 2
+ * @param direction - Reading direction left to right/right to left or vertical
+ * @param separateFirstPage - Bool if the first page is seperated creating an offset
+ * @returns The current page state, setter and callback functions to call next and prev page
  */
 export function usePageNavigation(
     pages: string[], 
@@ -93,6 +54,52 @@ export function usePageNavigation(
         direction === "RightToLeft" ? goForward : goBackwards;
 
     return { currentPage, setCurrentPage, nextPage, prevPage } 
+}
+
+/**
+ * 
+ * @param onPrev 
+ * @param onNext 
+ */
+export function useKeyboardNavigation(
+    onPrev: () => void, 
+    onNext: () => void
+) {
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') onPrev();
+            if (e.key === 'ArrowRight') onNext();
+        };
+        window.addEventListener('keydown', handleKey);
+        return () => window.removeEventListener('keydown', handleKey);
+    }, [onPrev, onNext]);
+}
+
+/**
+ * usePreloadPages
+ *  
+ * Preloads the two next pages and the previous page in img elements 
+ * 
+ * @param pages - Array of pages for the currently loaded volume/chapter
+ * @param currentIndex - The currently active page number
+ * @param pagesPerView - Number of pages to be shown to the user, 1 or 2
+ * @returns void
+ */
+export function usePreloadPages(pages: string[], currentIndex: number, pagesPerView: number) {
+    useEffect(() => {
+        const nextIndex = currentIndex + pagesPerView;
+        const prevIndex = currentIndex - pagesPerView;
+
+        const preload = (i: number) => {
+            if (i>= 0 && i < pages.length) {
+                const img = new Image();
+                img.src = pages[i];
+            }
+        };
+        preload(nextIndex);
+        preload(nextIndex + 1);
+        preload(prevIndex);
+    }, [pages, currentIndex, pagesPerView])
 }
 
 /**
