@@ -1,0 +1,33 @@
+.card {
+    width: 185px;
+}
+
+.card img {
+    width: 185px;
+    height: 265px;
+}
+
+.title {
+    margin: 0;
+    text-wrap: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-wrapper {
+    width: 150px;
+    height: 225px; 
+    aspect-ratio: 2/3;
+}
+
+#main-content {
+    width: 80vw;
+}
+
+.series-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 185px);
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 4rem;
+}

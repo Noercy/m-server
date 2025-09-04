@@ -1,0 +1,14 @@
+
+.volume-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.volume-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.volume-card h3 {
+    text-align: center;
+}

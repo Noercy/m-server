@@ -1,0 +1,6 @@
+.nav-side-container {
+    position: fixed;
+    width: 3rem;
+    height: 100vh;
+    left: 1rem;
+}

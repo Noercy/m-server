@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { fetchSeriesById, type SeriesBig } from "../api";
 import { route } from "preact-router";
+import './SeriesView.css'
 
 export default function SeriesView({ id }: { id: string }) {
     const [series, setSeries] = useState<SeriesBig | null>(null);
@@ -18,7 +19,7 @@ export default function SeriesView({ id }: { id: string }) {
 
    console.log(series)
     return (
-        <div class="series-view">
+        <div>
             <img fetchPriority="high" src={`/thumbnails/${series.Cover}`} alt="Cover" height={240} width={160} class="cover" />
             <h2>{series.Title}</h2>
             <div class="volume-list">

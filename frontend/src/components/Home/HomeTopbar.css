@@ -1,0 +1,27 @@
+.top-navbar{
+    position: fixed;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 3rem;
+    top: 0;
+    width: 80%;
+    background-color: #242424;
+}
+
+.user {
+    user-select: none;
+}
+
+.user:hover {
+    background-color: #383838;
+}
+
+.dropdown {
+    position: absolute;
+    height: 5rem;
+    background-color: black;
+    display: flex;
+    right: -80px;
+    flex-direction: column;
+}
