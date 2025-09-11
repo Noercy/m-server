@@ -1,10 +1,29 @@
 .reader {
+  
+}
+
+.pageContainer {
     display: flex;
     justify-content: center;
-    height: 100vh;
+  height: 100vh;
 }
 
 .reader link {
     height: 100%;
 }
 
+.navigateButtonLeft {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 20%;
+    height: 100vh;
+}
+
+.navigateButtonRight {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 20%;
+    height: 100vh;
+}

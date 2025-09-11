@@ -1,6 +1,9 @@
 .overlay {
     position: absolute;
-    right: 0px;
+    left: 0px;
+    bottom: 0px;
+    overflow: hidden;
+    z-index: 10;
 }
 
 .pageCounter {
@@ -9,16 +12,3 @@
     right: 0px;
 }
 
-.navigateButtonLeft {
-    position: absolute;
-    left: 0px;
-    width: 20%;
-    height: 100vh;
-}
-
-.navigateButtonRight {
-    position: absolute;
-    right: 0px;
-    width: 20%;
-    height: 100vh;
-}

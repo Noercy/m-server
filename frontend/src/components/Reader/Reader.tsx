@@ -91,13 +91,15 @@ export default function Reader({ id, vId }: ReaderProps) {
 
     return(
         <div ref={readerRef} class="reader">
-            {u1Settings.ReadDirection === "LeftToRight" 
-            ? [...displayPages].reverse().map((src, i) => (
-                <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
-            ))
-            : displayPages.map((src, i) => (
-                <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
-            ))}
+            <div class="pageContainer">
+                {u1Settings.ReadDirection === "LeftToRight" 
+                ? [...displayPages].reverse().map((src, i) => (
+                    <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
+                ))
+                : displayPages.map((src, i) => (
+                    <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
+                ))}
+            </div>
             
             <span class="pageCounter">{currentPage} / {pages.length}</span>
             <ReaderOverlay
@@ -109,7 +111,7 @@ export default function Reader({ id, vId }: ReaderProps) {
                 onToggleFirstPage={() => setSeparateFirstPage((prev) => !prev)}
             />
             <div class="navigateButtonLeft"></div>
-            <div class="navigateButtonRigth"></div>
+            <div class="navigateButtonRight"></div>
         </div>
     )
 }

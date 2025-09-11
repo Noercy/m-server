@@ -172,6 +172,11 @@ func GetSerieDataByID(id int, db *sql.DB) (*models.Series, error){
     return &series, nil
 }
 
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 func main() {
 	/*
 	metaData, err := GetFullMangaInfo("My Hero Academia")
@@ -205,7 +210,29 @@ func main() {
 	router := gin.Default();
 	router.Static("/static", "./static")
 	router.Static("/thumbnails", "E:/$otaku/mangaserver_cache/thumbnails")
-	router.Static("/pages", "E:/$otaku/mangaserver")
+	pages := router.Group("/pages")
+	pages.Use(func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=2000")
+		c.Next()
+	})
+	pages.Static("/", "E:/$otaku/mangaserver")
+
+	router.POST("/api/register", func(c *gin.Context) {
+		var newUser User
+		if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "User Regged successful",
+			"username": newUser.Username,
+			"password": newUser.Password,
+		})
+		
+	})
+
+	router.GET("/api/login")
 
 	router.GET("/api/allseries", func(c *gin.Context) {
 		c.JSON(http.StatusOK, series)
@@ -274,6 +301,7 @@ func main() {
 			return images[i] < images[j]
 		})
 
+	
 		c.JSON(http.StatusOK, gin.H{
 			"series_id": seriesId,
 			"volume_id": volumeId,
