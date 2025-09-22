@@ -3,4 +3,5 @@
     width: 3rem;
     height: 100vh;
     left: 1rem;
+    user-select: none;
 }

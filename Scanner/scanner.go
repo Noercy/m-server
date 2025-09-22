@@ -270,8 +270,7 @@ func scanSubfolders(path string, entry os.DirEntry, db *sql.DB, insertSerie stri
 }
 
 func FullFolderScan() {
-    // Define the root path where your manga series are stored, 
-    // TODO let users pick this 
+    // TODO import from the config
 	rootPath := "E:/$otaku/Mangaserver"
     fmt.Println("Starting scan")
 

@@ -23,7 +23,7 @@
 #main-content {
     width: 80vw;
 }
-
+/*
 .series-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, 185px);
@@ -31,3 +31,5 @@
     gap: 1rem;
     margin-top: 4rem;
 }
+*/
+

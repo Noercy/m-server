@@ -1,11 +1,21 @@
 .reader {
-  
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
 }
 
 .pageContainer {
     display: flex;
     justify-content: center;
-  height: 100vh;
+    height: 100vh;
+    scroll-snap-type: x mandatory;
+}
+
+.pageContainer img {
+    scroll-snap-align: start;
+    user-select: none;
+    -webkit-user-drag: none;
+
 }
 
 .reader link {

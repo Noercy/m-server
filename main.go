@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -22,12 +24,24 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	//"github.com/NYTimes/gziphandler"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/sessions"
+    "github.com/gin-contrib/sessions/cookie"
 )
 
 type smallSeries struct {
     ID        int    
     Title     string 
     Cover     string 
+}
+
+type config struct {
+	RootPath		string	`json:"rootPath"`
+	ThumbnailPath	string	`json:"thumbnailPath"`
+}
+
+type User struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 func GetFullMangaInfo(title string) (models.OldSeriesMetaData, error) {
@@ -70,7 +84,7 @@ func GetFullMangaInfo(title string) (models.OldSeriesMetaData, error) {
 	return fullInfo, nil
 }
 
-func GetSerieDataByID(id int, db *sql.DB) (*models.Series, error){
+func GetSerieDataByID(id int, db *sql.DB) (*models.Series, error) {
 	rows, err := db.Query(`
     SELECT 
 		s.id, s.title, s.path, s.cover_image, s.num_vol, s.num_images, s.created_at,
@@ -172,13 +186,7 @@ func GetSerieDataByID(id int, db *sql.DB) (*models.Series, error){
     return &series, nil
 }
 
-type User struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-func main() {
-	/*
+func printMetaData() {
 	metaData, err := GetFullMangaInfo("My Hero Academia")
 	if err != nil {
 		panic(err)
@@ -194,51 +202,181 @@ func main() {
 	fmt.Println("Cover Image:", metaData.CoverImage)
 	fmt.Println("Publishers:", metaData.Publishers)
 	fmt.Println("Publications:", metaData.Publications)
-	*/
+}
 
-	//scanner.FullFolderScan()
-	
+func GenerateUserDBSchema(db *sql.DB) {
+	schema := 
+	`CREATE TABLE IF NOT EXISTS users (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		username STRING NOT NULL UNIQUE,
+		password STRING NOT NULL
+	);`
 
-	db, err := sql.Open("sqlite3", "./manga.db")
+	_, err := db.Exec(schema)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+// TODO want to create a folder called thumbnails whereever the cache thumbnail folder is choosen
+func serverSetup() {
+	var serverConfig config 
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Enter desired Rootpath: ")
+	rootPath, _ := reader.ReadString('\n')
+	serverConfig.RootPath = strings.TrimSpace(rootPath)
+
+	fmt.Println("Enter desired thumbnail location: ")
+	thumbnailPath, _ := reader.ReadString('\n')
+	serverConfig.ThumbnailPath = strings.TrimSpace(thumbnailPath)	
+
+	data, err := json.MarshalIndent(serverConfig, "", " ")
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.WriteFile("serverConfig.json", data, 0644);
+	if err != nil {
+		panic(err)
+	}
+}
+
+func configExists() bool {
+	_, err := os.Stat("serverConfig.json")
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
+func getConfigPaths() (config, error) {
+	var serverConfig config
+
+	data, err := os.ReadFile("serverConfig.json")
+	if err != nil {
+		return serverConfig, err
+	}
+
+	err = json.Unmarshal(data, &serverConfig)
+	if err != nil {
+		return serverConfig, err
+	}
+
+	return serverConfig, nil
+}
+
+func getAllSeries(db *sql.DB) []smallSeries {
+	rows, err := db.Query("SELECT id, title, cover_image FROM series ORDER BY created_at DESC")
     if err != nil {
         log.Fatal(err)
     }
-    defer db.Close()
+    defer rows.Close()
 
-	series := getAllSeries(db)
+    var series []smallSeries
+    for rows.Next() {
+        var s smallSeries
+        if err := rows.Scan(&s.ID, &s.Title, &s.Cover); err != nil {
+            log.Println("Error scanning series:", err)
+            continue
+        }
+        series = append(series, s)
+    }
+    return series
+}
 
-	router := gin.Default();
-	router.Static("/static", "./static")
-	router.Static("/thumbnails", "E:/$otaku/mangaserver_cache/thumbnails")
-	pages := router.Group("/pages")
-	pages.Use(func(c *gin.Context) {
-		c.Header("Cache-Control", "public, max-age=2000")
-		c.Next()
-	})
-	pages.Static("/", "E:/$otaku/mangaserver")
+// test
+func testHandler() gin.HandlerFunc {
+	 return func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hey",
+		})
+	}
+}
 
-	router.POST("/api/register", func(c *gin.Context) {
+// register user
+func registerUserHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		GenerateUserDBSchema(db)
 		var newUser User
 		if err := c.ShouldBindBodyWithJSON(&newUser); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		insertNewUser := `INSERT INTO users (username, password) VALUES (?, ?);`
+		db.Exec(insertNewUser, newUser.Username, newUser.Password)
 
 		c.JSON(http.StatusOK, gin.H{
 			"message": "User Regged successful",
 			"username": newUser.Username,
 			"password": newUser.Password,
 		})
+	}
+}
+
+// login user
+func loginUserHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var loginReq User
+		if err := c.ShouldBindBodyWithJSON(&loginReq); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 		
-	})
+		var storedPass string
+		err := db.QueryRow("SELECT password FROM users WHERE username = ?", loginReq.Username).Scan(&storedPass)
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
+			return
+		} else if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "database error"})
+			return
+		}
 
-	router.GET("/api/login")
+		if storedPass != loginReq.Password {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid username or password"})
+			return
+		}
 
-	router.GET("/api/allseries", func(c *gin.Context) {
+		session := sessions.Default(c)
+		session.Set("user", loginReq.Username)
+		session.Save()
+		c.JSON(http.StatusOK, gin.H{"message": "login successful"})
+	}
+}
+
+func authRequired() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		user := session.Get("user")
+		if user == nil {
+			c.JSON(401, gin.H{"error:": "unauthorized"})
+			c.Abort()
+			return 
+		}
+		c.Set("user", user)
+		c.Next()
+	}
+}
+
+func currentUserHandler(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(200, gin.H{"user": user})
+}
+
+func getAllSeriesHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		series := getAllSeries(db)
 		c.JSON(http.StatusOK, series)
-	})
-	
-	router.GET("/api/series/:id", func(c *gin.Context) {
+	}
+}
+
+// get a single series and the volumes associated with it
+func getSerieHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 		log.Printf("id: %d", id)
 		if err != nil {
@@ -258,9 +396,12 @@ func main() {
 		}
 		
     	c.JSON(http.StatusOK, s)
-	})
+	}
+}
 
-	router.GET("/api/series/:id/reader/:vId", func(c *gin.Context) {
+// get the images of a single volume from a series for the reader
+func getReaderVolPages(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		seriesId := c.Param("id")
 		volumeId := c.Param("vId")
 
@@ -300,23 +441,54 @@ func main() {
 		sort.Slice(images, func(i, j int) bool {
 			return images[i] < images[j]
 		})
-
 	
 		c.JSON(http.StatusOK, gin.H{
 			"series_id": seriesId,
 			"volume_id": volumeId,
 			"images":    images,
 		})
-	})
+	}
+}
+
+func main() {
+	//scanner.FullFolderScan()
+	if !configExists() {
+		serverSetup()
+	}
 	
+	configData, err := getConfigPaths()
+	if err != nil {log.Fatal(err)}
 
-	router.GET("/api/test", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hey",
-		})
+	db, err := sql.Open("sqlite3", "./manga.db")
+    if err != nil {log.Fatal(err)}
+    defer db.Close()
+
+	router := gin.Default();
+
+	store := cookie.NewStore([]byte("sessionKeys"))
+	router.Use(sessions.Sessions("TheSession", store))
+
+	router.Static("/static", "./static")
+	router.Static("/thumbnails", configData.ThumbnailPath)
+	pages := router.Group("/pages")
+	pages.Use(func(c *gin.Context) {
+		c.Header("Cache-Control", "public, max-age=2000")
+		c.Next()
 	})
+	pages.Static("/", configData.RootPath)
+	router.GET("/me", authRequired(), currentUserHandler)
 
+	router.POST("/api/register", registerUserHandler(db))
 
+	router.POST("/api/login", loginUserHandler(db))
+
+	router.GET("/api/allseries", getAllSeriesHandler(db))
+	
+	router.GET("/api/series/:id", getSerieHandler(db))
+
+	router.GET("/api/series/:id/reader/:vId", getReaderVolPages(db))
+
+	router.GET("/api/test", testHandler())
 	router.Run("localhost:8080")
 /*
 	tmpl := template.Must(template.ParseFiles("Templates/index.html", "Templates/series_page.html"))
@@ -361,23 +533,3 @@ func main() {
     log.Fatal(http.ListenAndServe("localhost:8080", compressedHandler))
 	*/
 }
-
-func getAllSeries(db *sql.DB) []smallSeries {
-	rows, err := db.Query("SELECT id, title, cover_image FROM series ORDER BY created_at DESC")
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer rows.Close()
-
-    var series []smallSeries
-    for rows.Next() {
-        var s smallSeries
-        if err := rows.Scan(&s.ID, &s.Title, &s.Cover); err != nil {
-            log.Println("Error scanning series:", err)
-            continue
-        }
-        series = append(series, s)
-    }
-    return series
-}
-
