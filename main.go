@@ -450,6 +450,20 @@ func getReaderVolPages(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+func getMetadata() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		
+	}
+}
+
+/**
+* Setup the server config file with folder paths if it doesnt exist
+* Open the database
+* Start server
+* Set headers to cache images
+* Set api endpoints and handlers
+* Run on local
+*/
 func main() {
 	//scanner.FullFolderScan()
 	if !configExists() {
@@ -465,11 +479,15 @@ func main() {
 
 	router := gin.Default();
 
+	// broken sessionstorage i dont like this, redo
 	store := cookie.NewStore([]byte("sessionKeys"))
 	router.Use(sessions.Sessions("TheSession", store))
 
-	router.Static("/static", "./static")
+	// static routes
+	//router.Static("/static", "./static") // this one is irrelevent
 	router.Static("/thumbnails", configData.ThumbnailPath)
+	
+	//cache livespan for homepage
 	pages := router.Group("/pages")
 	pages.Use(func(c *gin.Context) {
 		c.Header("Cache-Control", "public, max-age=2000")
@@ -487,6 +505,8 @@ func main() {
 	router.GET("/api/series/:id", getSerieHandler(db))
 
 	router.GET("/api/series/:id/reader/:vId", getReaderVolPages(db))
+
+	router.GET("/api/getmetadata", getMetadata()) 
 
 	router.GET("/api/test", testHandler())
 	router.Run("localhost:8080")

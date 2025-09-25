@@ -1,7 +1,7 @@
 import { Router, Route } from 'preact-router';
 
 import './app.css'
-import SeriesView from './components/SeriesView';
+import SeriesView from './components/Serie/SeriesView';
 import Reader from './components/Reader/Reader';
 import Home from './components/Home/Home';
 

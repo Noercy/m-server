@@ -1,0 +1,56 @@
+.series-details {
+    display: flex;
+    justify-content: space-around;
+}
+
+.volume-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.volume-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.volume-card h3 {
+    text-align: center;
+}
+
+.edit-button {
+    height: 3rem;
+}
+
+.modal-cover{
+    position: fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
+    right: 0;
+    background-color: rgba(23, 22, 28, 0.814);
+}
+
+.modal-content-wrapper {
+    position: inherit;
+    height: 30rem;
+    width: 30rem;  
+    background-color: rgb(49, 13, 33);
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-top: 3rem;
+}
+
+.close-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0.5rem;
+}

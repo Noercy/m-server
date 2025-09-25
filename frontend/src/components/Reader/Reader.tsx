@@ -56,6 +56,13 @@ export default function Reader({ id, vId }: ReaderProps) {
             .catch(err => {
                 console.error("Failed to load pages", err);
             });
+
+            /*TODO  stop the scrolling on touch, fix later 
+        function preventScroll(e: TouchEvent) {
+            e.preventDefault();
+        }
+        document.body.addEventListener("touchmove", preventScroll, { passive: false });
+            */ 
     }, [id, vId]);
 
     if (pages.length === 0) {
