@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import { useKeyboardNavigation, usePreloadPages, usePageNavigation, useSwipe } from "./hooks"
+import { useKeyboardNavigation, usePreloadPages, usePageNavigation, useSwipe, useScrollZoom, useMousePanning } from "./hooks"
 import ReaderOverlay from "./ReaderOverlay";
 import './Reader.css'
 import type { UserSettings } from "./type";
@@ -44,6 +44,7 @@ export default function Reader({ id, vId }: ReaderProps) {
     const [pages, setPages] = useState<string[]>([]);
     const [direction, setDirection] = useState<"LeftToRight" | "RightToLeft">("LeftToRight");
     const [separateFirstPage, setSeparateFirstPage] = useState(false);
+    const [displayMode, setDisplayMode] = useState<"Single" | "Double" | "Auto">("Double")
 
     // TODO move to api
     useEffect(() => {
@@ -65,6 +66,16 @@ export default function Reader({ id, vId }: ReaderProps) {
             */ 
     }, [id, vId]);
 
+    // adjust content width to avoid scrollbar hell
+    useEffect(() => {
+        const mainContent = document.getElementById("main-content");
+        if (mainContent) mainContent.style.width = "100vw";
+
+        return () => {
+            if (mainContent) mainContent.style.width= "80vw";
+        }
+    }, [])
+
     if (pages.length === 0) {
         return <div>Loading</div>
     }
@@ -77,7 +88,7 @@ export default function Reader({ id, vId }: ReaderProps) {
     
     let displayPages: readonly string[] = [];
 
-    // Handle first page
+    // Handle first page, this is kind of broken
     if (separateFirstPage && currentPage === 1) {
         console.log("Seperate first page")
         displayPages = [pages[0]]
@@ -90,15 +101,25 @@ export default function Reader({ id, vId }: ReaderProps) {
         displayPages = [...displayPages].reverse();
     }
 
-    // swipe func
+    // swipe func, wipe not adjusting to direction swaps, kind of broken
     const readerRef = useRef<HTMLDivElement>(null);
     const onSwipeLeft = () => (direction === "RightToLeft" ? prevPage() : nextPage());
     const onSwipeRight = () => (direction === "RightToLeft" ? nextPage() : prevPage()); 
     useSwipe(readerRef, onSwipeLeft, onSwipeRight);
 
+    const scale = useScrollZoom(readerRef);
+    const {pos} = useMousePanning(readerRef, scale);
+
     return(
-        <div ref={readerRef} class="reader">
-            <div class="pageContainer">
+        <div class="reader">
+            <div  
+              ref={readerRef}  
+              class="pageContainer" 
+              style={{ 
+                transform: 
+                  `translate(${pos.x}px, ${pos.y}px) 
+                  scale(${scale})`
+              }}>
                 {u1Settings.ReadDirection === "LeftToRight" 
                 ? [...displayPages].reverse().map((src, i) => (
                     <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
@@ -106,9 +127,10 @@ export default function Reader({ id, vId }: ReaderProps) {
                 : displayPages.map((src, i) => (
                     <img fetchPriority="high" key={i} src={src} alt={`Page ${i + 1}`} />
                 ))}
-            </div>
+            </div>   
             
-            <span class="pageCounter">{currentPage} / {pages.length}</span>
+            
+            <span class="pageCounter disable-select">{currentPage} / {pages.length}</span>
             <ReaderOverlay
                 direction={direction}
                 onToggleDirection={() => 

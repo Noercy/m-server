@@ -1,21 +1,17 @@
 .reader {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
 }
 
 .pageContainer {
     display: flex;
     justify-content: center;
     height: 100vh;
-    scroll-snap-type: x mandatory;
 }
 
+
 .pageContainer img {
-    scroll-snap-align: start;
     user-select: none;
     -webkit-user-drag: none;
-
 }
 
 .reader link {
@@ -36,4 +32,8 @@
     right: 0px;
     width: 20%;
     height: 100vh;
+}
+
+.disable-select {
+    user-select: none;
 }

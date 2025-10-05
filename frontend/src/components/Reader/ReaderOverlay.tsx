@@ -16,10 +16,10 @@ export default function ReaderOverlay({
 
     return (
         <div class="overlay">
-            <button onClick={onToggleDirection}>
+            <button class="disable-select" onClick={onToggleDirection}>
                 {direction}
             </button>
-            <button onClick={onToggleFirstPage}>
+            <button class="disable-select" onClick={onToggleFirstPage}>
                 {seperateFirstPage ? "Merge First Page" : "Separate First Page"}
             </button>
         </div>

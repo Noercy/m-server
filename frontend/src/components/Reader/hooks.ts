@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import Hammer from 'hammerjs'
 
 /**
@@ -73,6 +73,71 @@ export function useKeyboardNavigation(
         window.addEventListener('keydown', handleKey);
         return () => window.removeEventListener('keydown', handleKey);
     }, [onPrev, onNext]);
+}
+
+export function useScrollZoom(
+    ref: preact.RefObject<HTMLElement>
+) {
+    const [scale, setScale] = useState(1);
+    const zoomOutMax = 0.5;
+    const zoomInMax = 2;
+    const zoomSens = 0.001;
+
+    useEffect(() => {
+        const handleScroll = (e: WheelEvent) => {
+            setScale(prev => {
+                const next = prev - e.deltaY * zoomSens;
+                return Math.min(Math.max(next, zoomOutMax), zoomInMax);
+            });
+        };
+
+        const container = ref.current
+        if (container) container.addEventListener("wheel", handleScroll)
+        
+        return () => container?.removeEventListener("wheel", handleScroll)
+    }, [ref]);
+    return scale;
+}
+
+export function useMousePanning(
+    ref: preact.RefObject<HTMLElement>,
+    scale: number
+) {
+    const [pos, setPos] = useState({ x:0, y: 0});
+    const isPanning = useRef(false);
+    const lastPos = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const handleMouseDown = (e: MouseEvent) => {
+            isPanning.current = true;
+            lastPos.current = {x: e.clientX - pos.x, y: e.clientY - pos.y};
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isPanning.current) return;
+            setPos({
+                x: e.clientX - lastPos.current.x,
+                y: e.clientY - lastPos.current.y,
+            });
+        };
+
+        const handleMouseUp = () => {
+            isPanning.current = false;
+        };
+
+        const container = ref.current;
+        if (container) container.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("mousemove", handleMouseMove);
+        window.addEventListener("mouseup", handleMouseUp);
+
+        return () => {
+            container?.removeEventListener("mousedown", handleMouseDown)
+            window.removeEventListener("mousemove", handleMouseMove);
+            window.removeEventListener("mouseup", handleMouseUp);
+        }
+    }, [ref, pos, scale]);
+
+    return {pos}
 }
 
 /**
